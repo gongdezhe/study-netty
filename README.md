@@ -6,7 +6,7 @@
 
 #### Neety官网：[http://netty.io](http://netty.io/)
 
-#### 接口文档（版本4.1）:[http://netty.io/4.1/ap](http://netty.io/4.1/api/index.html)
+#### 接口文档（版本4.1）:[http://netty.io/4.1/api](http://netty.io/4.1/api/index.html)
 
 ---
 
