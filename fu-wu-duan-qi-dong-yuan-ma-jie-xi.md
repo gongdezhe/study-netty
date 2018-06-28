@@ -225,10 +225,65 @@ protected AbstractNioChannel(Channel parent, SelectableChannel ch, int readInter
 }
 ```
 
-这里简单地将前面的 _provider.openServerSocketChannel\(\);_ 创建出来，ServerSocketChannel 保存到成员变量，然后调用  
-ch.configureBlocking\(false\);设置该channel为非阻塞模式，标准的jdk nio编程的玩法
+这里简单地将前面的 _provider.openServerSocketChannel\(\);_ 创建出来，_ServerSocketChannel _保存到成员变量，然后调用  
+_ch.configureBlocking\(false\);_设置该_channel_为非阻塞模式，标准的jdk nio编程的玩法
 
+这里的_readInterestOp_及前面层层传入的_SelectionKey.OP\_ACCEPT_，接下重点分析_super\(parent\);_（这里面的parent其实是null，由前面写死传入）
 
+> AbstractChannel.java
+
+```java
+protected AbstractChannel(Channel parent) {
+    this.parent = parent;
+    id = newId();
+    unsafe = newUnsafe();
+    pipeline = newChannelPipeline();
+}
+```
+
+这里又new出来了三大组件，赋值到成员变量，分别是
+
+```java
+id = newId();
+protected ChannelId newId() {
+    return DefaultChannelId.newInstance();
+}
+```
+
+id是netty中每条channel的唯一标识
+
+```java
+unsafe = newUnsafe();
+protected abstract AbstractUnsafe newUnsafe();
+```
+
+查看unsafe的定义
+
+> Unsafe operations that should never be called from user-code. These methods are only provided to implement the actual transport, and must be invoked from an I/O thread
+
+成功捕捉netty的又一大组件，先不管是什么，只要知道_newUnsafe_方法最终属于类_NioServerSocketChannel_中
+
+最后
+
+```java
+pipeline = newChannelPipeline();
+
+protected DefaultChannelPipeline newChannelPipeline() {
+    return new DefaultChannelPipeline(this);
+}
+
+protected DefaultChannelPipeline(Channel channel) {
+        this.channel = ObjectUtil.checkNotNull(channel, "channel");
+        succeededFuture = new SucceededChannelFuture(channel, null);
+        voidPromise =  new VoidChannelPromise(channel, true);
+
+        tail = new TailContext(this);
+        head = new HeadContext(this);
+
+        head.next = tail;
+        tail.prev = head;
+}
+```
 
 
 
