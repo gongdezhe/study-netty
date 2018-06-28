@@ -194,7 +194,7 @@ public NioServerSocketChannel(ServerSocketChannel channel) {
 }
 ```
 
-
+第一行代码调用父类的方法，
 
 * #### 初始化这个信道
 * #### 将这个信道寄存给某个对象
