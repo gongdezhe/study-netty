@@ -163,6 +163,32 @@ public class ReflectiveChannelFactory<T extends Channel> implements ChannelFacto
 
 通过上面可知，最终创建信道相当于调用默认构造函数创建一个`NioServerSocketChannel`对象
 
+> 读源码细节有两种读的方式：
+>
+> 一种是回溯，比如用到某个对象的时候可以逐层追溯，一定会找到该对象的最开始被创建的代码区块
+>
+> 还有一种方式就是自顶向下，逐层分析，一般用在分析某个具体的方法，庖丁解牛，最后拼接出完整的流程
+
+下面重心就放在_NioServerSocketChannel_的默认构造函数上
+
+```java
+private static final SelectorProvider DEFAULT_SELECTOR_PROVIDER = SelectorProvider.provider();
+public NioServerSocketChannel() {
+    this(newSocket(DEFAULT_SELECTOR_PROVIDER));
+}
+```
+
+```java
+private static ServerSocketChannel newSocket(SelectorProvider provider) {
+    //...
+    return provider.openServerSocketChannel();
+}
+```
+
+通过_SelectorProvider.openServerSocketChannel\(\)_创建一条服务端信道，然后进入以下方法
+
+
+
 
 
 
@@ -171,6 +197,4 @@ public class ReflectiveChannelFactory<T extends Channel> implements ChannelFacto
 * #### 将这个信道寄存给某个对象
 
 
-
-读源码细节，有两种读的方式，一种是回溯，比如用到某个对象的时候可以逐层追溯，一定会找到该对象的最开始被创建的代码区块，还有一种方式就是自顶向下，逐层分析，一般用在分析某个具体的方法，庖丁解牛，最后拼接出完整的流程
 
