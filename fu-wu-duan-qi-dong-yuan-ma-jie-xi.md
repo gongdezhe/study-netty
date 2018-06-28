@@ -187,9 +187,12 @@ private static ServerSocketChannel newSocket(SelectorProvider provider) {
 
 通过_SelectorProvider.openServerSocketChannel\(\)_创建一条服务端信道，然后进入以下方法
 
-
-
-
+```java
+public NioServerSocketChannel(ServerSocketChannel channel) {
+    super(null, channel, SelectionKey.OP_ACCEPT);
+    config = new NioServerSocketChannelConfig(this, javaChannel().socket());
+}
+```
 
 
 
