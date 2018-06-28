@@ -285,10 +285,183 @@ protected DefaultChannelPipeline(Channel channel) {
 }
 ```
 
+要知道_DefaultChannelPipeline_是干嘛的？通过顶层接口_ChannelPipeline_的定义
 
+> A list of ChannelHandlers which handles or intercepts inbound events and outbound operations of a Channel
+
+从该类的文档中可以看出，该接口基本又是netty的一大核心模块
+
+到了这里，我们将服务端channel创建完成，将这些细节串起来的时候，我们顺带提出netty的几大基本组件，总结如下：
+
+* Channel
+* ChannelConfig
+* ChannelId
+* Unsafe
+* Pipeline
+* ChannelHander
+
+本片侧重服务端启动过程，这些组件后期深入每个组件
+
+**总结一下，用户调用 Bootstrap.bind\(port\) 第一步就是通过反射的方式new一个NioServerSocketChannel 对象，并且在new的过程创建了一系列的核心组件**
 
 * #### 初始化这个信道
+
+到这里，回忆一下开始吗，第一步newChannel完毕，这里对这个channel做init，init方法如下：
+
+```java
+@Override
+void init(Channel channel) throws Exception {
+    final Map<ChannelOption<?>, Object> options = options0();
+    synchronized (options) {
+        channel.config().setOptions(options);
+    }
+
+    final Map<AttributeKey<?>, Object> attrs = attrs0();
+    synchronized (attrs) {
+        for (Entry<AttributeKey<?>, Object> e: attrs.entrySet()) {
+            @SuppressWarnings("unchecked")
+            AttributeKey<Object> key = (AttributeKey<Object>) e.getKey();
+            channel.attr(key).set(e.getValue());
+        }
+    }
+
+    ChannelPipeline p = channel.pipeline();
+
+    final EventLoopGroup currentChildGroup = childGroup;
+    final ChannelHandler currentChildHandler = childHandler;
+    final Entry<ChannelOption<?>, Object>[] currentChildOptions;
+    final Entry<AttributeKey<?>, Object>[] currentChildAttrs;
+    synchronized (childOptions) {
+        currentChildOptions = childOptions.entrySet().toArray(newOptionArray(childOptions.size()));
+    }
+    synchronized (childAttrs) {
+        currentChildAttrs = childAttrs.entrySet().toArray(newAttrArray(childAttrs.size()));
+    }
+
+    p.addLast(new ChannelInitializer<Channel>() {
+        @Override
+        public void initChannel(Channel ch) throws Exception {
+            final ChannelPipeline pipeline = ch.pipeline();
+            ChannelHandler handler = config.handler();
+            if (handler != null) {
+                pipeline.addLast(handler);
+            }
+
+            ch.eventLoop().execute(new Runnable() {
+                @Override
+                public void run() {
+                    pipeline.addLast(new ServerBootstrapAcceptor(
+                            currentChildGroup, currentChildHandler, currentChildOptions, currentChildAttrs));
+                }
+            });
+        }
+    });
+}
+```
+
+下面我们拆解步骤，一一分析
+
+1.设置option和attr
+
+```java
+final Map<ChannelOption<?>, Object> options = options0();
+    synchronized (options) {
+        channel.config().setOptions(options);
+    }
+
+    final Map<AttributeKey<?>, Object> attrs = attrs0();
+    synchronized (attrs) {
+        for (Entry<AttributeKey<?>, Object> e: attrs.entrySet()) {
+            @SuppressWarnings("unchecked")
+            AttributeKey<Object> key = (AttributeKey<Object>) e.getKey();
+            channel.attr(key).set(e.getValue());
+        }
+    }
+```
+
+通过这里我们可以看到，这里先调用options0\(\)以及attrs0\(\)，然后将得到的options和attrs注入到channelConfig或者channel中
+
+2.设置新接入的channel的option和attr
+
+```java
+final EventLoopGroup currentChildGroup = childGroup;
+final ChannelHandler currentChildHandler = childHandler;
+final Entry<ChannelOption<?>, Object>[] currentChildOptions;
+final Entry<AttributeKey<?>, Object>[] currentChildAttrs;
+synchronized (childOptions) {
+    currentChildOptions = childOptions.entrySet().toArray(newOptionArray(childOptions.size()));
+}
+synchronized (childAttrs) {
+    currentChildAttrs = childAttrs.entrySet().toArray(newAttrArray(childAttrs.size()));
+}
+```
+
+这里，和上面类似，只不过不是设置当前channel的这两个属性，而是对应到新进来连接对应的channel
+
+3.加入新连接处理器
+
+```java
+p.addLast(new ChannelInitializer<Channel>() {
+        @Override
+        public void initChannel(Channel ch) throws Exception {
+            final ChannelPipeline pipeline = ch.pipeline();
+            ChannelHandler handler = config.handler();
+            if (handler != null) {
+                pipeline.addLast(handler);
+            }
+
+            ch.eventLoop().execute(new Runnable() {
+                @Override
+                public void run() {
+                    pipeline.addLast(new ServerBootstrapAcceptor(
+                            currentChildGroup, currentChildHandler, currentChildOptions, currentChildAttrs));
+                }
+            });
+        }
+    });
+```
+
+到了最后一步，`p.addLast()`向serverChannel的流水线处理器中加入了一个 `ServerBootstrapAcceptor`，从名字上就可以看出来，这是一个接入器，专门接受新请求，把新的请求扔给某个事件循环器，我们先不做过多分析
+
+来，我们总结一下，我们发现其实init也没有启动服务，只是初始化了一些基本的配置和属性，以及在pipeline上加入了一个接入器，用来专门接受新连接，我们还得继续往下跟
+
 * #### 将这个信道寄存给某个对象
 
+这一步，我们是分析如下方法
 
+```java
+ChannelFuture regFuture = config().group().register(channel);
+```
+
+调用到NioEventLoop中的register
+
+```java
+@Override
+public ChannelFuture register(Channel channel) {
+    return register(new DefaultChannelPromise(channel, this));
+}
+```
+
+```java
+@Override
+public ChannelFuture register(final ChannelPromise promise) {
+    ObjectUtil.checkNotNull(promise, "promise");
+    promise.channel().unsafe().register(this, promise);
+    return promise;
+}
+```
+
+
+
+
+
+### summary
+
+最后，我们来做下总结，netty启动一个服务所经过的流程  
+ 1.设置启动类参数，最重要的就是设置channel  
+ 2.创建server对应的channel，创建各大组件，包括ChannelConfig,ChannelId,ChannelPipeline,ChannelHandler,Unsafe等  
+ 3.初始化server对应的channel，设置一些attr，option，以及设置子channel的attr，option，给server的channel添加新channel接入器，并出发addHandler,register等事件  
+ 4.调用到jdk底层做端口绑定，并触发active事件，active触发的时候，真正做服务端口绑定
+
+[^1]: [转载自：**netty源码分析之服务端启动全解析**](https://www.jianshu.com/p/c5068caab217) 
 
