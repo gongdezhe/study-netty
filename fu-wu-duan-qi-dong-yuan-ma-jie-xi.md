@@ -198,7 +198,9 @@ public NioServerSocketChannel(ServerSocketChannel channel) {
 
 > A set of configuration properties of a Channel.
 
-基本可以判定：
+基本可以判定：_ChannelConfig_ 也是netty里面的一大核心模块：该对象在创建_NioServerSocketChannel_对象的时候被创建
+
+
 
 * #### 初始化这个信道
 * #### 将这个信道寄存给某个对象
