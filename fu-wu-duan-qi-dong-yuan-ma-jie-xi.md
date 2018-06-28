@@ -1,4 +1,4 @@
-在《Netty的服务端Demo》中我们写了一个基本的Netty服务端的代码，本节我们深入骑宠细节，一窥服务端的启动过程
+在《Netty的服务端Demo》中我们写了一个基本的Netty服务端的代码，本节我们深入探究细节，一窥服务端的启动过程
 
 _ServerBootstrap_一系列参数使用[方法chaining](https://en.wikipedia.org/wiki/Method_chaining#Java)的方式将启动服务器需要的参数保存提交。这里不做重点介绍
 
@@ -194,7 +194,9 @@ public NioServerSocketChannel(ServerSocketChannel channel) {
 }
 ```
 
-第一行代码调用父类的方法，第二行，new出来一个NioServerSocketChannelConfig，其顶层接口为ChannelConfig，netty官方的描述如下
+第一行代码调用父类的方法，第二行new出来一个NioServerSocketChannelConfig，其顶层接口为ChannelConfig，netty官方的描述如下
+
+
 
 * #### 初始化这个信道
 * #### 将这个信道寄存给某个对象
