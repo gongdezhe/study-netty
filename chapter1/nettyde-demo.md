@@ -54,21 +54,15 @@ public final class SimpleServer {
 >
 > _ServerBootstrap_是服务端的一个启动辅助类，通过给他设置一系列的参数来绑定端口启动服务
 >
->       \_group\(bossGroup, workerGroup\) \_bossGroup的作用是不断地接收新的连接，workerGroup负责处理bossGroup接收的请求
->
->      `.channel(NioServerSocketChannel.class)`表示服务端启动的是NIO相关的信道，信道在网状里面是一大核心概念，可以理解为一条信道就是一个连接或者一个服务端绑定动作
->
->      `. handler(new SimpleServerHandler()`表示服务器启动过程中，需要经过哪些流程，这里`SimpleServerHandler`名单最终的顶层接口为`ChannelHander`是网状的一大核心概念，表示数据流经过的处理器，可以理解为流水线上的每一道关卡
->
->   ` childHandler(new ChannelInitializer<SocketChannel>)...`表示一条新的连接进来之后，该怎么处理，也就是上面所说的，boss如何给work分配
+> `group(bossGroup, workerGroup) bossGroup`的作用就是不断地接受到新的连接，将的新连接丢给`workerGroup`来处理
+
+> childHandler\(new ChannelInitializer&lt;SocketChannel&gt;\)...表示一条新的连接进来之后，该怎么处理，也就是上面所说的，boss如何给work分配
 >
 > `ChannelFuture f = b.bind(8888).sync();`这里就是真正的启动过程了，绑定8888端口，等待服务器启动完毕，才会进入下行代码
 >
 > `f.channel().closeFuture().sync();`等待服务端关闭套接字
 >
 > `bossGroup.shutdownGracefully(); workerGroup.shutdownGracefully();`关闭两组死循环
-
-
 
 
 
