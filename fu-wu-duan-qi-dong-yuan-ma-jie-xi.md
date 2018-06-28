@@ -13,7 +13,7 @@ b.bind(8888).sync();
 ```java
 public ChannelFuture bind(int inetPort) {
     return bind(new InetSocketAddress(inetPort));
-} 
+}
 ```
 
 通过端口号创建一个InetSocketAddress，然后继续绑定
@@ -42,6 +42,34 @@ private ChannelFuture doBind(final SocketAddress localAddress) {
     return promise;
 }
 ```
+
+这里去除掉细枝末节，专注核心方法，2大核心方法:`initAndRegister()和doBind0()`
+
+下面逐一分析：
+
+## `initAndRegister()`
+
+```java
+final ChannelFuture initAndRegister() {
+    Channel channel = null;
+    // ...
+    channel = channelFactory.newChannel();
+    //...
+    init(channel);
+    //...
+    ChannelFuture regFuture = config().group().register(channel);
+    //...
+    return regFuture;
+}
+```
+
+我们看到`initAndRegister()做了几件事情`
+
+1. 新创建一个channel
+2. 初始化这个channel
+3. 将这个channel register寄存给某个对象
+
+三个逐一分析
 
 
 
