@@ -194,7 +194,7 @@ public NioServerSocketChannel(ServerSocketChannel channel) {
 }
 ```
 
-第一行代码调用父类的方法，
+第一行代码调用父类的方法，第二行，new出来一个NioServerSocketChannelConfig，其顶层接口为ChannelConfig，netty官方的描述如下
 
 * #### 初始化这个信道
 * #### 将这个信道寄存给某个对象
