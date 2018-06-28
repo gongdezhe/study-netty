@@ -43,7 +43,7 @@ private ChannelFuture doBind(final SocketAddress localAddress) {
 }
 ```
 
-这里去除掉细枝末节，专注核心方法，2大核心方法:_`initAndRegister()`_`和`_`doBind0()`_
+这里去除掉细枝末节，专注核心方法，2大核心方法:`initAndRegister()和doBind0()`
 
 下面逐一分析：
 
@@ -63,7 +63,7 @@ final ChannelFuture initAndRegister() {
 }
 ```
 
-我们看到_`initAndRegister()`_`做了几件事情`
+我们看到`initAndRegister()做了几件事情`
 
 1. 新创建一个channel
 2. 初始化这个channel
@@ -79,7 +79,7 @@ final ChannelFuture initAndRegister() {
 
 这里的信道，是在服务启动的时候创建，我们可以和普通的网络编程中的ServerSocket对应理解
 
-通过_`initAndRegister()`_`的实现我们知道信道是通过一个`_`channelFactory`_新创建出来，_`channelFactory`_`的接口如下`
+通过`initAndRegister()的实现我们知道信道是通过一个channelFactory`新创建出来，`channelFactory的接口如下`
 
 ```java
 public interface ChannelFactory<T extends Channel> extends io.netty.bootstrap.ChannelFactory<T> {
@@ -109,7 +109,7 @@ public B channelFactory(ChannelFactory<? extends C> channelFactory) {
 }
 ```
 
-在这里被赋值，我们层层回溯，查看函数调用的地方，发现最终函数调用的地方
+在这里被赋值，我们层层回溯[^1]，查看函数调用的地方，发现最终函数调用的地方
 
 ```java
 public B channel(Class<? extends C> channelClass) {
@@ -128,13 +128,13 @@ public B channel(Class<? extends C> channelClass) {
 .channel(NioServerSocketChannel.class);
 ```
 
-在本节_`initAndRegister()`_`的时候我们看到：`
+在本节`initAndRegister()的时候我们看到：`
 
 ```java
 channelFactory.newChannel();
 ```
 
-可以推断，最终调用到_`ReflectiveChannelFactory.newChannel()`_方法
+可以推断，最终调用到`ReflectiveChannelFactory.newChannel()`方法
 
 ```java
 public class ReflectiveChannelFactory<T extends Channel> implements ChannelFactory<T> {
@@ -161,9 +161,7 @@ public class ReflectiveChannelFactory<T extends Channel> implements ChannelFacto
 
 看到_clazz.newInstance\(\);_，我们明白，原来是通过反射的方式来创建的一个对象，而这个类我们是在 _ServerBootstrap_ 中传入的_NioServerSocketChannel.class_
 
-通过上面可知，最终创建信道相当于调用默认构造函数创建一个_`NioServerSocketChannel`_对象
-
-
+通过上面可知，最终创建信道相当于调用默认构造函数创建一个`NioServerSocketChannel`对象
 
 
 
@@ -173,4 +171,6 @@ public class ReflectiveChannelFactory<T extends Channel> implements ChannelFacto
 * #### 将这个信道寄存给某个对象
 
 
+
+读源码细节，有两种读的方式，一种是回溯，比如用到某个对象的时候可以逐层追溯，一定会找到该对象的最开始被创建的代码区块，还有一种方式就是自顶向下，逐层分析，一般用在分析某个具体的方法，庖丁解牛，最后拼接出完整的流程
 
