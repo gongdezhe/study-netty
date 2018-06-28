@@ -109,7 +109,7 @@ public B channelFactory(ChannelFactory<? extends C> channelFactory) {
 }
 ```
 
-在这里被赋值，我们层层回溯[^1]，查看函数调用的地方，发现最终函数调用的地方
+在这里被赋值，我们层层回溯，查看函数调用的地方，发现最终函数调用的地方
 
 ```java
 public B channel(Class<? extends C> channelClass) {
@@ -212,9 +212,21 @@ protected AbstractNioMessageChannel(Channel parent, SelectableChannel ch, int re
 
 继续往上追
 
+> AbstractNioChannel.java
 
+```java
+protected AbstractNioChannel(Channel parent, SelectableChannel ch, int readInterestOp) {
+    super(parent);
+    this.ch = ch;
+    this.readInterestOp = readInterestOp;
+    //...
+    ch.configureBlocking(false);
+    //...
+}
+```
 
-
+这里简单地将前面的 _provider.openServerSocketChannel\(\);_ 创建出来，ServerSocketChannel 保存到成员变量，然后调用  
+ch.configureBlocking\(false\);设置该channel为非阻塞模式，标准的jdk nio编程的玩法
 
 
 
