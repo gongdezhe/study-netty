@@ -200,6 +200,24 @@ public NioServerSocketChannel(ServerSocketChannel channel) {
 
 基本可以判定：_ChannelConfig_ 也是netty里面的一大核心模块：该对象在创建_NioServerSocketChannel_对象的时候被创建
 
+我们继续追踪到_NioServerSocketChannel_的父类
+
+> AbstractNioMessageChannel.java
+
+```java
+protected AbstractNioMessageChannel(Channel parent, SelectableChannel ch, int readInterestOp) {
+    super(parent, ch, readInterestOp);
+}
+```
+
+继续往上追
+
+
+
+
+
+
+
 
 
 * #### 初始化这个信道
