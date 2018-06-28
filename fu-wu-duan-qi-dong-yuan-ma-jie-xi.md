@@ -71,5 +71,56 @@ final ChannelFuture initAndRegister() {
 
 三个逐一分析
 
+* #### new一个信道
+
+首先要知道信道的定义,官方给出的对信道的描述如下：
+
+> 与网络套接字或能够进行I / O操作（如读取，写入，连接和绑定）的组件的关系
+
+这里的信道，是在服务启动的时候创建，我们可以和普通的网络编程中的ServerSocket对应理解
+
+通过`initAndRegister()的实现我们知道信道是通过一个channelFactory`新创建出来，`channelFactory的接口如下`
+
+```java
+public interface ChannelFactory<T extends Channel> extends io.netty.bootstrap.ChannelFactory<T> {
+    /**
+     * Creates a new channel.
+     */
+    @Override
+    T newChannel();
+}
+```
+
+就一个方法，我们查看ChannelFactory被赋值的地方
+
+> AbstractBootstrap.java
+
+```java
+public B channelFactory(ChannelFactory<? extends C> channelFactory) {
+    if (channelFactory == null) {
+        throw new NullPointerException("channelFactory");
+    }
+    if (this.channelFactory != null) {
+        throw new IllegalStateException("channelFactory set already");
+    }
+
+    this.channelFactory = channelFactory;
+    return (B) this;
+}
+```
+
+在这里被赋值，我们层层回溯，查看函数调用的地方，发现最终函数调用的地方
+
+
+
+
+
+
+
+
+
+* #### 初始化这个信道
+* #### 将这个信道寄存给某个对象
+
 
 
