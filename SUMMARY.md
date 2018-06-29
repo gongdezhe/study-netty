@@ -7,4 +7,6 @@
   * [Netty的服务端Demo](chapter1/nettyde-demo.md)
 * [源码解析](yuan-ma-jie-xi.md)
   * [服务端启动源码解析](fu-wu-duan-qi-dong-yuan-ma-jie-xi.md)
+* 番外篇
+  * [IO中的同步、异步、阻塞与非阻塞](iozhong-de-tong-bu-3001-yi-bu-3001-zu-sai-yu-fei-zu-sai.md)
 
