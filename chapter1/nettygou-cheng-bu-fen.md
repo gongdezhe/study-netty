@@ -36,5 +36,7 @@ ByteBuf有三种使用模式：
 
 * **Codec**
 
+Netty中的编码/解码器，通过他你能完成字节与pojo、pojo与pojo的相互转换，从而达到自定义协议的目的。
 
+在Netty里面最有名的就是HttpRequestDecoder和HttpResponseEncoder了。
 
